@@ -1,0 +1,5 @@
+{
+  "name": "HTML Visual Builder",
+  "description": "A visual editor to build HTML structures using predefined utility classes. It features a component panel to add elements and provides both a GUI preview and a clean code output, without requiring frameworks in the final generated code.",
+  "requestFramePermissions": []
+}
