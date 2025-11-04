@@ -51,7 +51,7 @@ function App() {
     };
     setDomTree(prev => update(prev));
   }, []);
-  
+
   const handleUpdateElementClasses = useCallback((elementId: string, classes: string) => {
     const update = (nodes: ElementNode[]): ElementNode[] => {
       return nodes.map(n => {
@@ -80,18 +80,23 @@ function App() {
       if (parentId === null) {
         setDomTree(prevTree => [...prevTree, newElement]);
       } else {
-        const add = (nodes: ElementNode[]): ElementNode[] => {
-          return nodes.map(node => {
-            if (node.id === parentId) {
-              return { ...node, children: [...(node.children || []), newElement] };
-            }
-            if (node.children) {
-              return { ...node, children: add(node.children) };
-            }
-            return node;
-          });
-        };
-        setDomTree(prevTree => add(prevTree));
+        setDomTree(prevTree => {
+          const add = (nodes: ElementNode[]): ElementNode[] => {
+            return nodes.map(node => {
+              if (node.id === parentId) {
+                return {
+                  ...node,
+                  children: [...(node.children || []), { ...newElement }]
+                };
+              }
+              if (node.children) {
+                return { ...node, children: add(node.children) };
+              }
+              return node;
+            });
+          };
+          return add(prevTree);
+        });
       }
       return;
     }
@@ -100,10 +105,10 @@ function App() {
     const draggedNode = item as ElementNode;
 
     if (draggedNode.id === parentId) return;
-    
+
     setDomTree(currentTree => {
         let foundNode: ElementNode | null = null;
-        
+
         const removeNode = (nodes: ElementNode[], nodeId: string): ElementNode[] => {
           const remainingNodes = [];
           for (const node of nodes) {
@@ -119,7 +124,7 @@ function App() {
           }
           return remainingNodes;
         };
-        
+
         const treeWithoutNode = removeNode(currentTree, draggedNode.id);
 
         if (!foundNode) return currentTree;
@@ -135,7 +140,7 @@ function App() {
             return node;
           });
         };
-        
+
         if (parentId === null) {
             return [...treeWithoutNode, foundNode];
         } else {
@@ -144,7 +149,7 @@ function App() {
     });
 
   }, []);
-  
+
   const handleClearAll = () => {
     setDomTree([]);
     setSelectedElementId(null);
@@ -163,13 +168,13 @@ function App() {
           <h2 className="text-xl font-bold mb-4 text-white">Elementos</h2>
           <div className="flex-grow overflow-y-auto pr-2 space-y-2">
             {AVAILABLE_COMPONENTS.map((comp, index) => (
-              <ElementButton 
+              <ElementButton
                 key={`${comp.name}-${index}`}
                 component={comp}
               />
             ))}
           </div>
-          <button 
+          <button
             onClick={handleClearAll}
             className="mt-4 w-full text-center px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md font-semibold transition-colors flex items-center justify-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -206,14 +211,14 @@ function App() {
             {activeTab === 'gui' ? <GuiView domTree={domTree} onDropElement={handleDrop} onDeleteElement={handleDeleteElement} onUpdateElementContent={handleUpdateElementContent} selectedElementId={selectedElementId} onSelectElement={setSelectedElementId} dropHandledRef={dropHandledRef} /> : <CodeView domTree={domTree} />}
           </div>
         </main>
-        
+
         {/* Properties Panel */}
         <aside className={`w-80 bg-slate-800 border-l border-slate-700 transition-transform duration-300 ease-in-out ${selectedElement ? 'translate-x-0' : 'translate-x-full'}`}>
-          <PropertiesPanel 
+          <PropertiesPanel
             key={selectedElement?.id} // Force re-mount on selection change
-            element={selectedElement} 
+            element={selectedElement}
             onUpdateClasses={handleUpdateElementClasses}
-            onClose={() => setSelectedElementId(null)} 
+            onClose={() => setSelectedElementId(null)}
           />
         </aside>
       </div>
