@@ -3,7 +3,8 @@ import React from 'react';
 // A mapping of parent tags to an array of allowed child tags.
 // `null` means the element cannot have any children.
 // 'BODY' is a special key for the root-level drop area.
-const HIERARCHY_RULES: Record<string, (keyof JSX.IntrinsicElements)[] | null> = {
+// Fix: Use React.JSX namespace for JSX types.
+const HIERARCHY_RULES: Record<string, (keyof React.JSX.IntrinsicElements)[] | null> = {
   'body': ['div', 'p', 'h1', 'button', 'ul'], // Root level elements
   'div': ['div', 'p', 'h1', 'button', 'ul'],
   'ul': ['li'],
@@ -30,5 +31,6 @@ export const canDropElement = (parentTag: string, childTag: string): boolean => 
     return false; // Parent accepts no children
   }
   
-  return allowedChildren.includes(childTag as keyof JSX.IntrinsicElements);
+  // Fix: Use React.JSX namespace for JSX types.
+  return allowedChildren.includes(childTag as keyof React.JSX.IntrinsicElements);
 };

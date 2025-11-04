@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useDrop, useDrag, useDragLayer } from 'react-dnd';
 import type { ElementNode, DragItem } from '../types';
 import { canDropElement } from '../dnd-rules';
 import { ItemTypes } from '../constants';
 
-const CAN_EDIT_CONTENT_TAGS: (keyof JSX.IntrinsicElements)[] = ['p', 'h1', 'button', 'li'];
+// Fix: Use React.JSX namespace for JSX types.
+const CAN_EDIT_CONTENT_TAGS: (keyof React.JSX.IntrinsicElements)[] = ['p', 'h1', 'button', 'li'];
 
 const PencilIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -25,10 +26,13 @@ interface RenderNodeProps {
   onUpdateElementContent: (elementId: string, content: string) => void;
   selectedElementId: string | null;
   onSelectElement: (elementId: string) => void;
+  dropHandledRef: React.MutableRefObject<boolean>;
 }
 
-const RenderNode: React.FC<RenderNodeProps> = ({ node, onDropElement, onDeleteElement, onUpdateElementContent, selectedElementId, onSelectElement }) => {
+const RenderNode: React.FC<RenderNodeProps> = ({ node, onDropElement, onDeleteElement, onUpdateElementContent, selectedElementId, onSelectElement, dropHandledRef }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const nodeRef = useRef(node);
+  nodeRef.current = node;
 
   const { isDragging: isGlobalDragging } = useDragLayer((monitor) => ({
     isDragging: monitor.isDragging(),
@@ -45,16 +49,20 @@ const RenderNode: React.FC<RenderNodeProps> = ({ node, onDropElement, onDeleteEl
   const [{ isOver, canDrop }, drop] = useDrop(() => ({
     accept: ItemTypes.ELEMENT,
     canDrop: (item: DragItem) => {
+      const currentNode = nodeRef.current;
       const childTag = 'id' in item ? item.tag : item.tag;
-      if ('id' in item && item.id === node.id) return false; // Can't drop on self
-      return canDropElement(String(node.tag), String(childTag));
+      if ('id' in item && item.id === currentNode.id) return false;
+      return canDropElement(String(currentNode.tag), String(childTag));
     },
-    drop: (item: DragItem) => onDropElement(item, node.id),
+    drop: (item: DragItem) => {
+      dropHandledRef.current = true;
+      onDropElement(item, nodeRef.current.id);
+    },
     collect: (monitor) => ({
       isOver: !!monitor.isOver(),
       canDrop: !!monitor.canDrop(),
     }),
-  }), [node, onDropElement]);
+  }), [onDropElement, dropHandledRef]);
 
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -125,7 +133,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({ node, onDropElement, onDeleteEl
     childrenToRender.push(
       <div className="pl-4 pt-2 space-y-2" key="children-container">
         {node.children.map(child => (
-          <RenderNode key={child.id} node={child} onDropElement={onDropElement} onDeleteElement={onDeleteElement} onUpdateElementContent={onUpdateElementContent} selectedElementId={selectedElementId} onSelectElement={onSelectElement} />
+          <RenderNode key={child.id} node={child} onDropElement={onDropElement} onDeleteElement={onDeleteElement} onUpdateElementContent={onUpdateElementContent} selectedElementId={selectedElementId} onSelectElement={onSelectElement} dropHandledRef={dropHandledRef} />
         ))}
       </div>
     );
@@ -155,17 +163,29 @@ interface GuiViewProps {
   onUpdateElementContent: (elementId: string, content: string) => void;
   selectedElementId: string | null;
   onSelectElement: (elementId: string | null) => void;
+  dropHandledRef: React.MutableRefObject<boolean>;
 }
 
-export const GuiView: React.FC<GuiViewProps> = ({ domTree, onDropElement, onDeleteElement, onUpdateElementContent, selectedElementId, onSelectElement }) => {
+export const GuiView: React.FC<GuiViewProps> = ({ domTree, onDropElement, onDeleteElement, onUpdateElementContent, selectedElementId, onSelectElement, dropHandledRef }) => {
   const [{ isOver, canDrop }, drop] = useDrop(() => ({
     accept: ItemTypes.ELEMENT,
-    drop: (item: DragItem) => onDropElement(item, null), // null parentId means root
+    canDrop: (item: DragItem) => {
+      const childTag = 'id' in item ? item.tag : item.tag;
+      return canDropElement('body', String(childTag));
+    },
+    drop: (item: DragItem) => {
+      setTimeout(() => {
+        if (!dropHandledRef.current) {
+          onDropElement(item, null);
+        }
+        dropHandledRef.current = false;
+      }, 0);
+    },
     collect: (monitor) => ({
       isOver: !!monitor.isOver(),
       canDrop: !!monitor.canDrop(),
     }),
-  }), [onDropElement]);
+  }), [onDropElement, dropHandledRef]);
   
   const getBackgroundColor = () => {
     if (isOver && canDrop) {
@@ -183,9 +203,9 @@ export const GuiView: React.FC<GuiViewProps> = ({ domTree, onDropElement, onDele
     >
       <div className="space-y-4">
         {domTree.length > 0 ? (
-          domTree.map(node => <RenderNode key={node.id} node={node} onDropElement={onDropElement} onDeleteElement={onDeleteElement} onUpdateElementContent={onUpdateElementContent} selectedElementId={selectedElementId} onSelectElement={onSelectElement} />)
+          domTree.map(node => <RenderNode key={node.id} node={node} onDropElement={onDropElement} onDeleteElement={onDeleteElement} onUpdateElementContent={onUpdateElementContent} selectedElementId={selectedElementId} onSelectElement={onSelectElement} dropHandledRef={dropHandledRef} />)
         ) : (
-          <div className="flex items-center justify-center h-96 border-2 border-dashed border-slate-600 rounded-lg pointer-events-none">
+          <div className={`flex items-center justify-center h-96 border-2 border-dashed ${isOver && canDrop ? 'border-blue-400' : isOver && !canDrop ? 'border-red-400' : 'border-slate-600'} rounded-lg pointer-events-none transition-colors`}>
             <p className="text-slate-400">Arrastra elementos desde el panel izquierdo aquí para comenzar.</p>
           </div>
         )}

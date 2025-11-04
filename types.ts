@@ -2,16 +2,19 @@ import React from 'react';
 
 export interface ElementNode {
   id: string;
-  tag: keyof JSX.IntrinsicElements;
+  // Fix: Use React.JSX namespace for JSX types.
+  tag: keyof React.JSX.IntrinsicElements;
   classes: string;
   content?: string;
   children: ElementNode[];
 }
 
 export interface AvailableComponent {
-  tag: keyof JSX.IntrinsicElements;
+  // Fix: Use React.JSX namespace for JSX types.
+  tag: keyof React.JSX.IntrinsicElements;
   name: string;
-  icon: JSX.Element;
+  // Fix: Use React.JSX namespace for JSX types.
+  icon: React.JSX.Element;
   defaultClasses: string;
   defaultContent?: string;
 }

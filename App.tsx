@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import type { ElementNode, AvailableComponent, DragItem } from './types';
@@ -24,6 +24,7 @@ function App() {
   const [domTree, setDomTree] = useState<ElementNode[]>([]);
   const [activeTab, setActiveTab] = useState<ActiveTab>('gui');
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+  const dropHandledRef = useRef(false);
 
   const handleDeleteElement = useCallback((elementId: string) => {
     if (selectedElementId === elementId) {
@@ -76,22 +77,21 @@ function App() {
         children: [],
       };
 
-      const add = (nodes: ElementNode[]): ElementNode[] => {
-        return nodes.map(node => {
-          if (node.id === parentId) {
-            return { ...node, children: [...(node.children || []), newElement] };
-          }
-          if (node.children) {
-            return { ...node, children: add(node.children) };
-          }
-          return node;
-        });
-      };
-      
       if (parentId === null) {
-        setDomTree(prev => [...prev, newElement]);
+        setDomTree(prevTree => [...prevTree, newElement]);
       } else {
-        setDomTree(prev => add(prev));
+        const add = (nodes: ElementNode[]): ElementNode[] => {
+          return nodes.map(node => {
+            if (node.id === parentId) {
+              return { ...node, children: [...(node.children || []), newElement] };
+            }
+            if (node.children) {
+              return { ...node, children: add(node.children) };
+            }
+            return node;
+          });
+        };
+        setDomTree(prevTree => add(prevTree));
       }
       return;
     }
@@ -100,50 +100,50 @@ function App() {
     const draggedNode = item as ElementNode;
 
     if (draggedNode.id === parentId) return;
-
-    let foundNode: ElementNode | null = null;
     
-    // Recursively find and remove the node
-    const removeNode = (nodes: ElementNode[], nodeId: string): ElementNode[] => {
-      const remainingNodes = [];
-      for (const node of nodes) {
-        if (node.id === nodeId) {
-          foundNode = node;
-        } else {
-          const newNode = { ...node };
-          if (node.children) {
-            newNode.children = removeNode(node.children, nodeId);
+    setDomTree(currentTree => {
+        let foundNode: ElementNode | null = null;
+        
+        const removeNode = (nodes: ElementNode[], nodeId: string): ElementNode[] => {
+          const remainingNodes = [];
+          for (const node of nodes) {
+            if (node.id === nodeId) {
+              foundNode = node;
+            } else {
+              const newNode = { ...node };
+              if (node.children) {
+                newNode.children = removeNode(node.children, nodeId);
+              }
+              remainingNodes.push(newNode);
+            }
           }
-          remainingNodes.push(newNode);
-        }
-      }
-      return remainingNodes;
-    };
-    
-    const treeWithoutNode = removeNode(domTree, draggedNode.id);
+          return remainingNodes;
+        };
+        
+        const treeWithoutNode = removeNode(currentTree, draggedNode.id);
 
-    if (!foundNode) return;
+        if (!foundNode) return currentTree;
 
-    // Recursively add the found node to its new parent
-    const addNode = (nodes: ElementNode[]): ElementNode[] => {
-      return nodes.map(node => {
-        if (node.id === parentId) {
-          return { ...node, children: [...(node.children || []), foundNode!] };
+        const addNode = (nodes: ElementNode[]): ElementNode[] => {
+          return nodes.map(node => {
+            if (node.id === parentId) {
+              return { ...node, children: [...(node.children || []), foundNode!] };
+            }
+            if (node.children) {
+              return { ...node, children: addNode(node.children) };
+            }
+            return node;
+          });
+        };
+        
+        if (parentId === null) {
+            return [...treeWithoutNode, foundNode];
+        } else {
+            return addNode(treeWithoutNode);
         }
-        if (node.children) {
-          return { ...node, children: addNode(node.children) };
-        }
-        return node;
-      });
-    };
-    
-    if (parentId === null) {
-        setDomTree([...treeWithoutNode, foundNode]);
-    } else {
-        setDomTree(addNode(treeWithoutNode));
-    }
+    });
 
-  }, [domTree]);
+  }, []);
   
   const handleClearAll = () => {
     setDomTree([]);
@@ -203,7 +203,7 @@ function App() {
           </header>
 
           <div className="flex-1 overflow-auto bg-slate-900">
-            {activeTab === 'gui' ? <GuiView domTree={domTree} onDropElement={handleDrop} onDeleteElement={handleDeleteElement} onUpdateElementContent={handleUpdateElementContent} selectedElementId={selectedElementId} onSelectElement={setSelectedElementId} /> : <CodeView domTree={domTree} />}
+            {activeTab === 'gui' ? <GuiView domTree={domTree} onDropElement={handleDrop} onDeleteElement={handleDeleteElement} onUpdateElementContent={handleUpdateElementContent} selectedElementId={selectedElementId} onSelectElement={setSelectedElementId} dropHandledRef={dropHandledRef} /> : <CodeView domTree={domTree} />}
           </div>
         </main>
         
