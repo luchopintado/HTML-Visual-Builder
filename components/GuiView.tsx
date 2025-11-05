@@ -76,7 +76,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({ node, onDropElement, onDeleteEl
     e.stopPropagation();
     onDeleteElement(node.id);
   };
-  
+
   const handleSelect = (e: React.MouseEvent) => {
     e.stopPropagation();
     onSelectElement(node.id);
@@ -92,7 +92,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({ node, onDropElement, onDeleteEl
   } else if (isHovered && !isGlobalDragging) {
     dynamicClasses = 'shadow-lg shadow-blue-500/20 ring-1 ring-blue-600';
   }
-  
+
   if (isOver) {
     dynamicClasses = canDrop ? 'outline-2 outline-dashed outline-blue-400' : 'outline-2 outline-dashed outline-red-400';
   }
@@ -186,7 +186,7 @@ export const GuiView: React.FC<GuiViewProps> = ({ domTree, onDropElement, onDele
       canDrop: !!monitor.canDrop(),
     }),
   }), [onDropElement, dropHandledRef]);
-  
+
   const getBackgroundColor = () => {
     if (isOver && canDrop) {
       return 'bg-blue-900/10';
@@ -195,9 +195,11 @@ export const GuiView: React.FC<GuiViewProps> = ({ domTree, onDropElement, onDele
   };
 
   return (
-    <div 
-      ref={drop}
-      className={`p-8 min-h-full transition-colors ${getBackgroundColor()}`} 
+    <div
+      ref={(node) => {
+        drop(node);
+      }}
+      className={`p-8 min-h-full transition-colors ${getBackgroundColor()}`}
       style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)', backgroundSize: '20px 20px'}}
       onClick={() => onSelectElement(null)}
     >

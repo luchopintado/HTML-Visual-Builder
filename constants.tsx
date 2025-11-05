@@ -1,5 +1,3 @@
-
-import React from 'react';
 import type { AvailableComponent } from './types';
 
 export const ItemTypes = {
@@ -25,15 +23,21 @@ const ButtonIcon = () => (
 );
 
 const HeadingIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m-4-16v16M8 4h8M4 20h16" />
-    </svg>
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m-4-16v16M8 4h8M4 20h16" />
+  </svg>
 );
 
 const ListIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-    </svg>
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+  </svg>
+);
+
+export const ClearAllIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" />
+  </svg>
 );
 
 export const AVAILABLE_COMPONENTS: AvailableComponent[] = [
@@ -49,7 +53,7 @@ export const AVAILABLE_COMPONENTS: AvailableComponent[] = [
     icon: <CodeIcon />,
     defaultClasses: 'flex gap-4 p-4 bg-slate-700 border border-slate-600 rounded-lg min-h-[50px]',
   },
-    {
+  {
     tag: 'div',
     name: 'Flex Vertical',
     icon: <CodeIcon />,
