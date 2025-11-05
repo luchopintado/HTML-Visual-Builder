@@ -9,8 +9,7 @@ import { useDomTree } from './hooks/useDomTree';
 import { useDragDrop } from './hooks/useDnD';
 import { ElementsPanel } from './components/ElementsPanel';
 import { Header } from './components/Header';
-
-type ActiveTab = 'gui' | 'code';
+import { ActiveTab } from './types';
 
 function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('gui');
@@ -48,7 +47,6 @@ function App() {
               ? <GuiView domTree={domTree} onDropElement={handleDrop} onDeleteElement={handleDeleteElement} onUpdateElementContent={handleUpdateElementContent} selectedElementId={selectedElementId} onSelectElement={setSelectedElementId} dropHandledRef={dropHandledRef} />
               : <CodeView domTree={domTree} />}
           </div>
-
         </main>
 
         {/* Properties Panel */}

@@ -19,4 +19,6 @@ export interface AvailableComponent {
   defaultContent?: string;
 }
 
+export type ActiveTab = 'gui' | 'code';
+
 export type DragItem = AvailableComponent | ElementNode;

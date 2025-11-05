@@ -1,6 +1,7 @@
 import React from 'react';
 import { ElementButton } from './ElementButton';
-import { AVAILABLE_COMPONENTS, ClearAllIcon } from '../constants';
+import { AVAILABLE_COMPONENTS } from '../constants';
+import { ClearAllIcon } from './Icons';
 
 interface ElementsPanelProps {
     onClearAll: () => void;
